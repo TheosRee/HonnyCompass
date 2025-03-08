@@ -6,63 +6,130 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.*;
+import java.util.logging.Logger;
 
 public class MainConfigManager {
-    @Getter private final String north;
-    @Getter private final String northSelected;
+    private final Logger logger;
 
-    @Getter private final String east;
-    @Getter private final String eastSelected;
+    @Getter
+    private final String north;
 
-    @Getter private final String south;
-    @Getter private final String southSelected;
+    @Getter
+    private final String northSelected;
 
-    @Getter private final String west;
-    @Getter private final String westSelected;
+    @Getter
+    private final String east;
 
-    @Getter private final String fill;
-    @Getter private final String fillCenter;
+    @Getter
+    private final String eastSelected;
 
-    @Getter private final String fillSelect;
-    @Getter private final String fillCenterSelect;
+    @Getter
+    private final String south;
 
-    @Getter private final String compassTarget;
-    @Getter private final String compassTargetSelected;
-    @Getter private final String compassTargetAbove;
-    @Getter private final String compassTargetSelectedAbove;
-    @Getter private final String compassTargetBelow;
-    @Getter private final String compassTargetSelectedBelow;
+    @Getter
+    private final String southSelected;
 
-    @Getter private final String selectedCompassTarget;
-    @Getter private final String selectedCompassTargetSelected;
-    @Getter private final String selectedCompassTargetAbove;
-    @Getter private final String selectedCompassTargetSelectedAbove;
-    @Getter private final String selectedCompassTargetBelow;
-    @Getter private final String selectedCompassTargetSelectedBelow;
+    @Getter
+    private final String west;
 
-    @Getter private final String symbolStart;
-    @Getter private final String symbolEnd;
+    @Getter
+    private final String westSelected;
 
-    @Getter private final String prefixString;
-    @Getter private final String prefixFormatString;
+    @Getter
+    private final String fill;
 
-    @Getter private final String postfixString;
-    @Getter private final String postfixFormatString;
+    @Getter
+    private final String fillCenter;
 
-    @Getter private final String titleMessage;
-    @Getter private final String titleMessageSelected;
+    @Getter
+    private final String fillSelect;
 
-    @Getter private final BarColor barColor;
-    @Getter private final BarStyle barStyle;
+    @Getter
+    private final String fillCenterSelect;
 
-    @Getter private final int compassLocationsUpdateDelaySeconds;
-    @Getter private final int ticksUpdateCompass;
-    @Getter private final double yDifferenceIcons;
+    @Getter
+    private final String compassTarget;
 
-    @Getter private final List<String> originCompass;
-    @Getter private final Map<String, String> replacers = new HashMap<>();
+    @Getter
+    private final String compassTargetSelected;
 
-    public MainConfigManager(FileConfiguration config) {
+    @Getter
+    private final String compassTargetAbove;
+
+    @Getter
+    private final String compassTargetSelectedAbove;
+
+    @Getter
+    private final String compassTargetBelow;
+
+    @Getter
+    private final String compassTargetSelectedBelow;
+
+    @Getter
+    private final String selectedCompassTarget;
+
+    @Getter
+    private final String selectedCompassTargetSelected;
+
+    @Getter
+    private final String selectedCompassTargetAbove;
+
+    @Getter
+    private final String selectedCompassTargetSelectedAbove;
+
+    @Getter
+    private final String selectedCompassTargetBelow;
+
+    @Getter
+    private final String selectedCompassTargetSelectedBelow;
+
+    @Getter
+    private final String symbolStart;
+
+    @Getter
+    private final String symbolEnd;
+
+    @Getter
+    private final String prefixString;
+
+    @Getter
+    private final String prefixFormatString;
+
+    @Getter
+    private final String postfixString;
+
+    @Getter
+    private final String postfixFormatString;
+
+    @Getter
+    private final String titleMessage;
+
+    @Getter
+    private final String titleMessageSelected;
+
+    @Getter
+    private final BarColor barColor;
+
+    @Getter
+    private final BarStyle barStyle;
+
+    @Getter
+    private final int compassLocationsUpdateDelaySeconds;
+
+    @Getter
+    private final int ticksUpdateCompass;
+
+    @Getter
+    private final double yDifferenceIcons;
+
+    @Getter
+    private final List<String> originCompass;
+
+    @Getter
+    private final Map<String, String> replacers = new HashMap<>();
+
+    public MainConfigManager(final Logger logger, final FileConfiguration config) {
+        this.logger = logger;
         south = getString(config, "south", "&e&lS");
         southSelected = getString(config, "south-selected", "&6&lS");
         replacers.put(south, southSelected);
@@ -128,10 +195,11 @@ public class MainConfigManager {
     }
 
     private List<String> formatOriginCompass() {
-        List<String> allSection = new ArrayList<>();
+        final List<String> allSection = new ArrayList<>();
 
         // Length 9
-        List<String> fillSection = Arrays.asList(this.fill, this.fill, this.fill, this.fill, this.fillCenter, this.fill, this.fill, this.fill, this.fill);
+        final List<String> fillSection = Arrays.asList(this.fill, this.fill, this.fill, this.fill, this.fillCenter, this.fill, this.fill,
+                this.fill, this.fill);
 
         // offset 20 slots
         allSection.add(this.north);
@@ -158,16 +226,18 @@ public class MainConfigManager {
         return allSection;
     }
 
-    private static String getString(FileConfiguration config, String path, String defaultValue) {
-        String value = config.getString(path);
-        if (value == null) return defaultValue;
+    private String getString(final FileConfiguration config, final String path, final String defaultValue) {
+        final String value = config.getString(path);
+        if (value == null) {
+            return defaultValue;
+        }
         return value.replace("&", "§");
     }
 
-    private static String getString(FileConfiguration config, String path) {
-        String value = config.getString(path);
+    private String getString(final FileConfiguration config, final String path) {
+        final String value = config.getString(path);
         if (value == null) {
-            HonnyCompass.getInstance().getLogger().warning("§4Config string \"" + path + "\" not found");
+            logger.warning("§4Config string \"" + path + "\" not found");
             return null;
         }
         return value.replace("&", "§");

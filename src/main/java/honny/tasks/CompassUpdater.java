@@ -10,27 +10,30 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.Optional;
 
 public class CompassUpdater extends BukkitRunnable {
+    private final HonnyCompass honnyCompass;
+
     int count = 0;
+
+    public CompassUpdater(final HonnyCompass honnyCompass) {
+        this.honnyCompass = honnyCompass;
+    }
 
     @Override
     public void run() {
-        HonnyCompass honnyCompass = HonnyCompass.getInstance();
-        MainConfigManager mainConfig = honnyCompass.getMainConfig();
+        final MainConfigManager mainConfig = honnyCompass.getMainConfig();
 
         count++;
-        if (count < mainConfig.getTicksUpdateCompass()) return;
+        if (count < mainConfig.getTicksUpdateCompass()) {
+            return;
+        }
         count = 0;
 
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            if (honnyCompass.getOptionalAuthMeApi().isPresent()) {
-                if (!honnyCompass.getOptionalAuthMeApi().get().isAuthenticated(player)) continue;
-            }
-
-            Optional<PlayerCompass> optionalPlayerCompass = honnyCompass.getCompass(player);
+        for (final Player player : Bukkit.getOnlinePlayers()) {
+            final Optional<PlayerCompass> optionalPlayerCompass = honnyCompass.getCompass(player);
             if (optionalPlayerCompass.isEmpty()) {
                 honnyCompass.createCompass(player);
             } else {
-                optionalPlayerCompass.get().update(player);
+                optionalPlayerCompass.get().update();
             }
         }
     }

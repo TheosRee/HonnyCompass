@@ -5,12 +5,13 @@ api-version: 1.18
 
 depend:
   - BetonQuest
-
-softdepend:
   - PlaceholderAPI
-  - AuthMe
 
 commands:
-  honnycompass:
-    usage: '§e/honnycompass'
-    aliases: [ hcompass ]
+  honnycompass-reload:
+    usage: '§e/honnycompass-reload'
+    permission: honnycompass.reload
+
+permissions:
+  honnycompass.reload:
+    default: op

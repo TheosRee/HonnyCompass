@@ -1,28 +1,53 @@
 package honny.controllers;
 
-import honny.HonnyCompass;
 import honny.MainConfigManager;
-import honny.dependings.betonquest.CompassLocations;
 import honny.utils.AngleUtil;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.StringUtils;
+import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.logger.BetonQuestLogger;
+import org.betonquest.betonquest.api.profile.OnlineProfile;
+import org.betonquest.betonquest.api.quest.QuestException;
+import org.betonquest.betonquest.database.PlayerData;
+import org.betonquest.betonquest.feature.QuestCompass;
+import org.betonquest.betonquest.id.CompassID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerCompass {
-    private final BossBar bossBarCompass;
-    private final BossBar bossBarMessage;
-    @Setter private Location targetLocation;
 
-    public PlayerCompass(Player player) {
-        MainConfigManager mainConfig = HonnyCompass.getInstance().getMainConfig();
+    private final List<QuestCompass> activeCompasses = new ArrayList<>();
+
+    private final BossBar bossBarCompass;
+
+    private final BossBar bossBarMessage;
+
+    private final BetonQuest betonQuest;
+
+    private final MainConfigManager mainConfig;
+
+    private final Player player;
+
+    private final BetonQuestLogger logger;
+
+    @Setter
+    @Nullable
+    private Location targetLocation;
+
+    public PlayerCompass(final BetonQuestLogger logger, final BetonQuest betonQuest, final MainConfigManager mainConfig,
+            final Player player) {
+        this.logger = logger;
+        this.betonQuest = betonQuest;
+        this.mainConfig = mainConfig;
+        this.player = player;
         bossBarCompass = Bukkit.createBossBar("", mainConfig.getBarColor(), mainConfig.getBarStyle());
         bossBarCompass.addPlayer(player);
 
@@ -30,7 +55,7 @@ public class PlayerCompass {
         bossBarMessage.addPlayer(player);
         bossBarMessage.setVisible(false);
 
-        this.update(player);
+        this.update();
     }
 
     public void deleteBossBar() {
@@ -38,124 +63,145 @@ public class PlayerCompass {
         bossBarMessage.removeAll();
     }
 
-    List<String> compassList;
-    List<CompassLocations.CompassLocation> compassLocations = null;
-
-    public void updateCompassLocations(Player player) {
-        this.compassLocations = HonnyCompass.getInstance().getCompassLocations().getLocations(player);
+    public void updateCompassLocations() {
+        activeCompasses.clear();
+        final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
+        final PlayerData playerData = betonQuest.getPlayerDataStorage().get(profile);
+        for (final Map.Entry<CompassID, QuestCompass> entry : betonQuest.getFeatureAPI().getCompasses().entrySet()) {
+            if (playerData.hasTag(entry.getKey().getCompassTag())) {
+                activeCompasses.add(entry.getValue());
+            }
+        }
     }
 
-    public @NotNull List<CompassLocations.CompassLocation> getCompassLocations(Player player) {
-        if (compassLocations == null) updateCompassLocations(player);
-        return this.compassLocations;
-    }
+    public void update() {
 
-    public void update(Player player) {
-        HonnyCompass instance = HonnyCompass.getInstance();
-        MainConfigManager mainConfig = instance.getMainConfig();
+        final Location playerLocation = player.getLocation();
+        if (playerLocation.getWorld() == null) {
+            return;
+        }
 
         // All compass is 20 + 40 + 20 sections length
-        int yawPerSection = 9; // 360 / 40 = 9
+        final int yawPerSection = 9; // 360 / 40 = 9
 
         // integer division; 2 / 9 = 0
-        double yaw = player.getLocation().getYaw();
-        if (yaw < 0) yaw += 360;
-        int currentYaw = ((int) yaw / yawPerSection) + 20;
+        double yaw = playerLocation.getYaw();
+        if (yaw < 0) {
+            yaw += 360;
+        }
+        final int currentYaw = ((int) yaw / yawPerSection) + 20;
 
-        this.compassList = new ArrayList<>(mainConfig.getOriginCompass());
-        String targetName = null;
+        List<String> compassList = new ArrayList<>(mainConfig.getOriginCompass());
+        Map.Entry<String, Location> selectedTarget = null;
         boolean targetSelected = false;
-        double distance = 0;
 
-        if (instance.getOptionalBetonQuest().isPresent()) {
-            for (CompassLocations.CompassLocation compassLocation : getCompassLocations(player)) {
+        updateCompassLocations();
+        final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
+        final String language = betonQuest.getPlayerDataStorage().get(profile).getLanguage();
+        for (final QuestCompass compass : activeCompasses) {
+            final Location compassLocation;
+            try {
+                compassLocation = compass.location().getValue(profile);
+            } catch (final QuestException e) {
+                logger.warn("Could not parse compass location: " + e.getMessage(), e);
+                continue;
+            }
+            if (!playerLocation.getWorld().equals(compassLocation.getWorld())) {
+                continue;
+            }
 
-                if (player.getLocation().getWorld() != null) {
-                    if (!player.getLocation().getWorld().equals(compassLocation.location.getWorld())) continue;
+            final int pointYaw = AngleUtil.computeAngle(player, compassLocation) / yawPerSection + 20;
 
-                    int pointYaw = AngleUtil.computeAngle(player, compassLocation.location) / yawPerSection + 20;
+            final boolean selected = this.targetLocation != null && this.targetLocation.equals(compassLocation);
 
-                    boolean selected = this.targetLocation != null && this.targetLocation.equals(compassLocation.location);
-
-                    if (pointYaw == currentYaw) {
-                        targetName = compassLocation.name;
-                        targetSelected = selected;
-                        distance = player.getLocation().distance(compassLocation.location);
-                    }
-
-                    String point;
-                    if (selected) {
-                        // below
-                        if (player.getLocation().getY() - compassLocation.location.getY() > mainConfig.getYDifferenceIcons()) {
-                            point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelectedBelow() : mainConfig.getSelectedCompassTargetBelow();
-                        }
-                        // above
-                        else if (compassLocation.location.getY() - player.getLocation().getY() > mainConfig.getYDifferenceIcons()) {
-                            point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelectedAbove() : mainConfig.getSelectedCompassTargetAbove();
-                        }
-                        // at player level
-                        else {
-                            point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelected() : mainConfig.getSelectedCompassTarget();
-                        }
-                    }
-                    else {
-                        // below
-                        if (player.getLocation().getY() - compassLocation.location.getY() > mainConfig.getYDifferenceIcons()) {
-                            point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelectedBelow() : mainConfig.getCompassTargetBelow();
-                        }
-                        // above
-                        else if (compassLocation.location.getY() - player.getLocation().getY() > mainConfig.getYDifferenceIcons()) {
-                            point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelectedAbove() : mainConfig.getCompassTargetAbove();
-                        }
-                        // at player level
-                        else {
-                            point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelected() : mainConfig.getCompassTarget();
-                        }
-                    }
-
-                    this.compassList.set(pointYaw, point);
-                    if (pointYaw > 40)
-                        this.compassList.set(pointYaw - 40, point);
-                    if (pointYaw < 40)
-                        this.compassList.set(pointYaw + 40, point);
+            if (pointYaw == currentYaw) {
+                String targetName;
+                try {
+                    targetName = compass.names().getResolved(language, profile);
+                } catch (final QuestException e) {
+                    logger.warn("Could not parse compass name: " + e.getMessage(), e);
+                    targetName = "Error";
                 }
+                targetSelected = selected;
+                selectedTarget = Map.entry(targetName, compassLocation);
+            }
+
+            final String point;
+            if (selected) {
+                // below
+                if (playerLocation.getY() - compassLocation.getY() > mainConfig.getYDifferenceIcons()) {
+                    point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelectedBelow()
+                            : mainConfig.getSelectedCompassTargetBelow();
+                }
+                // above
+                else if (compassLocation.getY() - playerLocation.getY() > mainConfig.getYDifferenceIcons()) {
+                    point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelectedAbove()
+                            : mainConfig.getSelectedCompassTargetAbove();
+                }
+                // at player level
+                else {
+                    point = pointYaw == currentYaw ? mainConfig.getSelectedCompassTargetSelected()
+                            : mainConfig.getSelectedCompassTarget();
+                }
+            } else {
+                // below
+                if (playerLocation.getY() - compassLocation.getY() > mainConfig.getYDifferenceIcons()) {
+                    point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelectedBelow() : mainConfig.getCompassTargetBelow();
+                }
+                // above
+                else if (compassLocation.getY() - playerLocation.getY() > mainConfig.getYDifferenceIcons()) {
+                    point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelectedAbove() : mainConfig.getCompassTargetAbove();
+                }
+                // at player level
+                else {
+                    point = pointYaw == currentYaw ? mainConfig.getCompassTargetSelected() : mainConfig.getCompassTarget();
+                }
+            }
+
+            compassList.set(pointYaw, point);
+            if (pointYaw > 40) {
+                compassList.set(pointYaw - 40, point);
+            }
+            if (pointYaw < 40) {
+                compassList.set(pointYaw + 40, point);
             }
         }
 
-        this.compassList = this.compassList.subList(currentYaw - 10, currentYaw + 11);
+        compassList = compassList.subList(currentYaw - 10, currentYaw + 11);
 
-        String currentItem = this.compassList.get(10);
-        if (mainConfig.getReplacers().containsKey(currentItem)) this.compassList.set(10, mainConfig.getReplacers().get(currentItem));
+        final String currentItem = compassList.get(10);
+        if (mainConfig.getReplacers().containsKey(currentItem)) {
+            compassList.set(10, mainConfig.getReplacers().get(currentItem));
+        }
 
-        String start = "";
-        if (mainConfig.getPrefixString().length() > 0) {
-            String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPrefixString());
+        final String start;
+        if (mainConfig.getPrefixString().isEmpty()) {
+            start = "";
+        } else {
+            final String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPrefixString());
             PlaceholderAPI.setPlaceholders(player, line);
             start = String.format(mainConfig.getPrefixFormatString(), line);
         }
-        String end = "";
-        if (mainConfig.getPostfixString().length() > 0) {
-            String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPostfixString());
+        final String end;
+        if (mainConfig.getPostfixString().isEmpty()) {
+            end = "";
+        } else {
+            final String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPostfixString());
             PlaceholderAPI.setPlaceholders(player, line);
             end = String.format(mainConfig.getPostfixFormatString(), line);
         }
 
-        String compass = start + mainConfig.getSymbolStart() + StringUtils.join(this.compassList, "") + mainConfig.getSymbolEnd() + end;
+        final String compass = start + mainConfig.getSymbolStart() + StringUtils.join(compassList, "") + mainConfig.getSymbolEnd() + end;
         bossBarCompass.setTitle(compass);
 
-        if (targetName != null) {
-            if (targetSelected)
-                bossBarMessage.setTitle(mainConfig.getTitleMessageSelected().replace(
-                        "{name}", targetName
-                ).replace(
-                        "{distance}", Double.toString(Math.round(distance))
-                ));
-            else
-                bossBarMessage.setTitle(mainConfig.getTitleMessage().replace(
-                        "{name}", targetName
-                ).replace(
-                        "{distance}", Double.toString(Math.round(distance))
-                ));
+        if (selectedTarget != null) {
+            final String baseMessage = targetSelected ? mainConfig.getTitleMessageSelected() : mainConfig.getTitleMessage();
+            final double distance = selectedTarget.getValue().distance(playerLocation);
+            bossBarMessage.setTitle(baseMessage.replace(
+                    "{name}", selectedTarget.getKey()
+            ).replace(
+                    "{distance}", Double.toString(Math.round(distance))
+            ));
             bossBarMessage.setVisible(true);
         } else {
             bossBarMessage.setVisible(false);

@@ -1,4 +1,5 @@
 ## HonnyCompass
+
 Spigot plugin for BetonQuest compass.
 
 The idea is taken from the plugin by autor Caleb Britannia:
@@ -12,26 +13,33 @@ Targets has different marks if it is below or above. If you look in mark directi
 I tried to make the compass lightwight as possible.
 
 ## How to use
+
 Compass displays all targets from `/compass` from config `package.compass`
 
-It display all user compass directions:
+It displays all user compass directions:
+
 ```
 compass add compass_name
 compass add another_compass_name
 ```
+
 BetonQuest compass docs: https://docs.betonquest.org/RELEASE/User-Documentation/Events-List/#compass-compass
 
 ## Permissions
+
 ```
 honnycompass.reload
 ```
 
 ## Dependencies
+
 - BetonQuest - compass destinations.
-- AuthMe (optional) - hide compass until login.
+- PlaceholderAPI
 
 ## Preview:
+
 ![preview](https://github.com/honnisha/HonnyCompass/blob/main/preview/Peek-2022-05-07.23-06.gif?raw=true)
 
 # Bugs
+
 If you encounter a bug, then write about it in the issues section. I'll try to fix it as soon as I have time.

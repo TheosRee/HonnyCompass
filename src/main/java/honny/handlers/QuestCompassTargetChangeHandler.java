@@ -1,19 +1,20 @@
 package honny.handlers;
 
 import honny.HonnyCompass;
-import honny.controllers.PlayerCompass;
-import org.betonquest.betonquest.api.QuestCompassTargetChangeEvent;
+import org.betonquest.betonquest.api.bukkit.event.QuestCompassTargetChangeEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
-import java.util.Optional;
-
 public class QuestCompassTargetChangeHandler implements Listener {
-    @EventHandler
-    public void QuestCompassTargetChangeEvent(QuestCompassTargetChangeEvent event) {
-        HonnyCompass honnyCompass = HonnyCompass.getInstance();
+    private final HonnyCompass honnyCompass;
 
-        Optional<PlayerCompass> optionalPlayerCompass = honnyCompass.getCompass(event.getProfile());
-        optionalPlayerCompass.ifPresent(playerCompass -> playerCompass.setTargetLocation(event.getLocation()));
+    public QuestCompassTargetChangeHandler(final HonnyCompass honnyCompass) {
+        this.honnyCompass = honnyCompass;
+    }
+
+    @EventHandler
+    public void QuestCompassTargetChangeEvent(final QuestCompassTargetChangeEvent event) {
+        honnyCompass.getCompass(event.getProfile())
+                .ifPresent(playerCompass -> playerCompass.setTargetLocation(event.getLocation()));
     }
 }
