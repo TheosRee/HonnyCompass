@@ -10,7 +10,7 @@ If you select target in `/compass`, then pointer will be highlighted.
 
 Targets has different marks if it is below or above. If you look in mark direction - it will display distance to the target.
 
-I tried to make the compass lightwight as possible.
+I tried to make the compass lightweight as possible.
 
 ## How to use
 

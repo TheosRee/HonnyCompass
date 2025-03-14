@@ -18,15 +18,11 @@ import java.util.*;
 
 public final class HonnyCompass extends JavaPlugin {
 
-    @Getter
-    private static HonnyCompass instance;
-
     private final Map<UUID, PlayerCompass> compasses = new HashMap<>();
 
     @Getter
     private MainConfigManager mainConfig;
 
-    @Getter
     private BetonQuest betonQuest;
 
     @Override
@@ -39,7 +35,6 @@ public final class HonnyCompass extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
         betonQuest = BetonQuest.getInstance();
 
         // Cybermedium
@@ -49,7 +44,7 @@ public final class HonnyCompass extends JavaPlugin {
         this.getLogger().info("§d                                                             ");
 
         final CommandsHandler commandsHandler = new CommandsHandler(this);
-        final PluginCommand command = Objects.requireNonNull(this.getCommand("honnycompass"));
+        final PluginCommand command = Objects.requireNonNull(this.getCommand("honnycompass-reload"));
         command.setExecutor(commandsHandler);
         command.setTabCompleter(commandsHandler);
 
