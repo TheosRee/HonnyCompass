@@ -4,6 +4,7 @@ import honny.MainConfigManager;
 import honny.utils.AngleUtil;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
@@ -75,7 +76,6 @@ public class PlayerCompass {
     }
 
     public void update() {
-
         final Location playerLocation = player.getLocation();
         if (playerLocation.getWorld() == null) {
             return;
@@ -97,7 +97,6 @@ public class PlayerCompass {
 
         updateCompassLocations();
         final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
-        final String language = betonQuest.getPlayerDataStorage().get(profile).getLanguage();
         for (final QuestCompass compass : activeCompasses) {
             final Location compassLocation;
             try {
@@ -117,7 +116,7 @@ public class PlayerCompass {
             if (pointYaw == currentYaw) {
                 String targetName;
                 try {
-                    targetName = compass.names().getResolved(language, profile);
+                    targetName = LegacyComponentSerializer.legacySection().serialize(compass.names().asComponent(profile));
                 } catch (final QuestException e) {
                     logger.warn("Could not parse compass name: " + e.getMessage(), e);
                     targetName = "Error";
