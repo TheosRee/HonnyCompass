@@ -69,7 +69,7 @@ public class PlayerCompass {
         final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
         final PlayerData playerData = betonQuest.getPlayerDataStorage().get(profile);
         for (final Map.Entry<CompassID, QuestCompass> entry : betonQuest.getFeatureAPI().getCompasses().entrySet()) {
-            if (playerData.hasTag(entry.getKey().getCompassTag())) {
+            if (playerData.hasTag(entry.getKey().getTag())) {
                 activeCompasses.add(entry.getValue());
             }
         }
