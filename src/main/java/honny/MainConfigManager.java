@@ -125,6 +125,12 @@ public class MainConfigManager {
     @Getter
     private final Map<String, String> replacers = new HashMap<>();
 
+    @Getter
+    private final String barStart;
+
+    @Getter
+    private final String barEnd;
+
     public MainConfigManager(final FileConfiguration config) {
         south = getString(config, "south", "&e&lS");
         southSelected = getString(config, "south-selected", "&6&lS");
@@ -188,6 +194,11 @@ public class MainConfigManager {
         yDifferenceIcons = config.getDouble("y-difference-icons", 10);
 
         originCompass = formatOriginCompass();
+
+        final String prefix = prefixString.isEmpty() ? "" : String.format(prefixFormatString, prefixString);
+        barStart = prefix + symbolStart;
+        final String postfix = postfixString.isEmpty() ? "" : String.format(postfixFormatString, postfixString);
+        barEnd = symbolEnd + postfix;
     }
 
     private List<String> formatOriginCompass() {

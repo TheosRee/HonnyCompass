@@ -173,20 +173,7 @@ public class PlayerCompass {
             compassList.set(10, mainConfig.getReplacers().get(currentItem));
         }
 
-        final String start;
-        if (mainConfig.getPrefixString().isEmpty()) {
-            start = "";
-        } else {
-            start = String.format(mainConfig.getPrefixFormatString(), mainConfig.getPrefixString());
-        }
-        final String end;
-        if (mainConfig.getPostfixString().isEmpty()) {
-            end = "";
-        } else {
-            end = String.format(mainConfig.getPostfixFormatString(), mainConfig.getPostfixString());
-        }
-
-        final String compass = start + mainConfig.getSymbolStart() + StringUtils.join(compassList, "") + mainConfig.getSymbolEnd() + end;
+        final String compass = mainConfig.getBarStart() + StringUtils.join(compassList, "") + mainConfig.getBarEnd();
         bossBarCompass.setTitle(PlaceholderAPI.setPlaceholders(player, compass));
 
         if (selectedTarget != null) {
