@@ -6,11 +6,8 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.*;
-import java.util.logging.Logger;
 
 public class MainConfigManager {
-    private final Logger logger;
-
     @Getter
     private final String north;
 
@@ -128,8 +125,7 @@ public class MainConfigManager {
     @Getter
     private final Map<String, String> replacers = new HashMap<>();
 
-    public MainConfigManager(final Logger logger, final FileConfiguration config) {
-        this.logger = logger;
+    public MainConfigManager(final FileConfiguration config) {
         south = getString(config, "south", "&e&lS");
         southSelected = getString(config, "south-selected", "&6&lS");
         replacers.put(south, southSelected);
@@ -230,15 +226,6 @@ public class MainConfigManager {
         final String value = config.getString(path);
         if (value == null) {
             return defaultValue;
-        }
-        return value.replace("&", "§");
-    }
-
-    private String getString(final FileConfiguration config, final String path) {
-        final String value = config.getString(path);
-        if (value == null) {
-            logger.warning("§4Config string \"" + path + "\" not found");
-            return null;
         }
         return value.replace("&", "§");
     }

@@ -70,7 +70,7 @@ public final class HonnyCompass extends JavaPlugin {
         this.compasses.clear();
         this.reloadConfig();
 
-        mainConfig = new MainConfigManager(getLogger(), this.getConfig());
+        mainConfig = new MainConfigManager(this.getConfig());
         this.getLogger().info("§dConfig loaded");
     }
 
