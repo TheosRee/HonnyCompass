@@ -177,30 +177,26 @@ public class PlayerCompass {
         if (mainConfig.getPrefixString().isEmpty()) {
             start = "";
         } else {
-            final String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPrefixString());
-            PlaceholderAPI.setPlaceholders(player, line);
-            start = String.format(mainConfig.getPrefixFormatString(), line);
+            start = String.format(mainConfig.getPrefixFormatString(), mainConfig.getPrefixString());
         }
         final String end;
         if (mainConfig.getPostfixString().isEmpty()) {
             end = "";
         } else {
-            final String line = PlaceholderAPI.setPlaceholders(player, mainConfig.getPostfixString());
-            PlaceholderAPI.setPlaceholders(player, line);
-            end = String.format(mainConfig.getPostfixFormatString(), line);
+            end = String.format(mainConfig.getPostfixFormatString(), mainConfig.getPostfixString());
         }
 
         final String compass = start + mainConfig.getSymbolStart() + StringUtils.join(compassList, "") + mainConfig.getSymbolEnd() + end;
-        bossBarCompass.setTitle(compass);
+        bossBarCompass.setTitle(PlaceholderAPI.setPlaceholders(player, compass));
 
         if (selectedTarget != null) {
             final String baseMessage = targetSelected ? mainConfig.getTitleMessageSelected() : mainConfig.getTitleMessage();
             final double distance = selectedTarget.getValue().distance(playerLocation);
-            bossBarMessage.setTitle(baseMessage.replace(
+            bossBarMessage.setTitle(PlaceholderAPI.setPlaceholders(player, baseMessage.replace(
                     "{name}", selectedTarget.getKey()
             ).replace(
                     "{distance}", Double.toString(Math.round(distance))
-            ));
+            )));
             bossBarMessage.setVisible(true);
         } else {
             bossBarMessage.setVisible(false);
