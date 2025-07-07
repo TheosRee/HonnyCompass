@@ -1,6 +1,7 @@
 package honny;
 
 import lombok.Getter;
+import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -238,6 +239,6 @@ public class MainConfigManager {
         if (value == null) {
             return defaultValue;
         }
-        return value.replace("&", "§");
+        return ChatColor.translateAlternateColorCodes('&', value);
     }
 }
