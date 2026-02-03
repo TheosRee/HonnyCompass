@@ -7,12 +7,12 @@ import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang.StringUtils;
 import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.QuestException;
+import org.betonquest.betonquest.api.identifier.CompassIdentifier;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.OnlineProfile;
-import org.betonquest.betonquest.api.quest.QuestException;
 import org.betonquest.betonquest.database.PlayerData;
 import org.betonquest.betonquest.feature.QuestCompass;
-import org.betonquest.betonquest.id.CompassID;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
@@ -68,7 +68,7 @@ public class PlayerCompass {
         activeCompasses.clear();
         final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
         final PlayerData playerData = betonQuest.getPlayerDataStorage().get(profile);
-        for (final Map.Entry<CompassID, QuestCompass> entry : betonQuest.getFeatureApi().getCompasses().entrySet()) {
+        for (final Map.Entry<CompassIdentifier, QuestCompass> entry : betonQuest.getFeatureApi().getCompasses().entrySet()) {
             if (playerData.hasTag(entry.getKey().getTag())) {
                 activeCompasses.add(entry.getValue());
             }

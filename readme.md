@@ -2,7 +2,7 @@
 
 Spigot plugin for BetonQuest compass.
 
-The idea is taken from the plugin by autor Caleb Britannia:
+The idea is taken from the plugin by author Caleb Britannia:
 https://github.com/CalebGitBritannia/calebcompass
 
 But it only displays all compass destinations from BetonQuest targets.
@@ -33,7 +33,7 @@ honnycompass.reload
 
 ## Dependencies
 
-- BetonQuest (3.0.0-DEV-114) - compass destinations.
+- BetonQuest (3.0.0-DEV-616) - compass destinations.
 - PlaceholderAPI
 
 ## Preview:
