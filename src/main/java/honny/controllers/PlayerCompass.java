@@ -6,13 +6,12 @@ import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.apache.commons.lang.StringUtils;
-import org.betonquest.betonquest.BetonQuest;
 import org.betonquest.betonquest.api.QuestException;
-import org.betonquest.betonquest.api.identifier.CompassIdentifier;
+import org.betonquest.betonquest.api.compass.QuestCompass;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.OnlineProfile;
-import org.betonquest.betonquest.database.PlayerData;
-import org.betonquest.betonquest.feature.QuestCompass;
+import org.betonquest.betonquest.api.profile.ProfileProvider;
+import org.betonquest.betonquest.api.service.compass.CompassManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.boss.BossBar;
@@ -31,7 +30,9 @@ public class PlayerCompass {
 
     private final BossBar bossBarMessage;
 
-    private final BetonQuest betonQuest;
+    private final ProfileProvider profileProvider;
+
+    private final CompassManager compassManager;
 
     private final MainConfigManager mainConfig;
 
@@ -43,10 +44,11 @@ public class PlayerCompass {
     @Nullable
     private Location targetLocation;
 
-    public PlayerCompass(final BetonQuestLogger logger, final BetonQuest betonQuest, final MainConfigManager mainConfig,
-            final Player player) {
+    public PlayerCompass(final BetonQuestLogger logger, final ProfileProvider profileProvider, final CompassManager compassManager,
+            final MainConfigManager mainConfig, final Player player) {
         this.logger = logger;
-        this.betonQuest = betonQuest;
+        this.profileProvider = profileProvider;
+        this.compassManager = compassManager;
         this.mainConfig = mainConfig;
         this.player = player;
         bossBarCompass = Bukkit.createBossBar("", mainConfig.getBarColor(), mainConfig.getBarStyle());
@@ -66,14 +68,7 @@ public class PlayerCompass {
 
     public void updateCompassLocations() {
         activeCompasses.clear();
-        final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
-        final PlayerData playerData = betonQuest.getPlayerDataStorage().get(profile);
-        for (final Map.Entry<CompassIdentifier, QuestCompass> entry :
-                betonQuest.getCoreQuestTypeHandler().getCompassProcessor().getValues().entrySet()) {
-            if (playerData.hasTag(entry.getKey().getTag())) {
-                activeCompasses.add(entry.getValue());
-            }
-        }
+        activeCompasses.addAll(compassManager.forProfile(profileProvider.getProfile(player)).values());
     }
 
     public void update() {
@@ -97,7 +92,7 @@ public class PlayerCompass {
         boolean targetSelected = false;
 
         updateCompassLocations();
-        final OnlineProfile profile = betonQuest.getProfileProvider().getProfile(player);
+        final OnlineProfile profile = profileProvider.getProfile(player);
         for (final QuestCompass compass : activeCompasses) {
             final Location compassLocation;
             try {
@@ -117,7 +112,7 @@ public class PlayerCompass {
             if (pointYaw == currentYaw) {
                 String targetName;
                 try {
-                    targetName = LegacyComponentSerializer.legacySection().serialize(compass.names().asComponent(profile));
+                    targetName = LegacyComponentSerializer.legacySection().serialize(compass.name().asComponent(profile));
                 } catch (final QuestException e) {
                     logger.warn("Could not parse compass name: " + e.getMessage(), e);
                     targetName = "Error";

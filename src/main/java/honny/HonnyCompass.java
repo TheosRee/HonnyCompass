@@ -7,7 +7,8 @@ import honny.handlers.QuestCompassTargetChangeHandler;
 import honny.tasks.CompassUpdater;
 import honny.tasks.PlayerCompassLocationsUpdater;
 import lombok.Getter;
-import org.betonquest.betonquest.BetonQuest;
+import org.betonquest.betonquest.api.BetonQuestApi;
+import org.betonquest.betonquest.api.BetonQuestApiService;
 import org.betonquest.betonquest.api.logger.BetonQuestLogger;
 import org.betonquest.betonquest.api.profile.Profile;
 import org.bukkit.command.PluginCommand;
@@ -23,7 +24,7 @@ public final class HonnyCompass extends JavaPlugin {
     @Getter
     private MainConfigManager mainConfig;
 
-    private BetonQuest betonQuest;
+    private BetonQuestApi betonQuest;
 
     @Override
     public void onDisable() {
@@ -35,7 +36,7 @@ public final class HonnyCompass extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        betonQuest = BetonQuest.getInstance();
+        betonQuest = BetonQuestApiService.get().get().api(this);
 
         // Cybermedium
         this.getLogger().info("§d_  _ ____ _  _ _  _ _   _ ____ ____ _  _ ___  ____ ____ ____ ");
@@ -75,8 +76,8 @@ public final class HonnyCompass extends JavaPlugin {
     }
 
     public PlayerCompass createCompass(final Player player) {
-        final BetonQuestLogger logger = betonQuest.getLoggerFactory().create(this, "PlayerCompass");
-        final PlayerCompass playerCompass = new PlayerCompass(logger, betonQuest, mainConfig, player);
+        final BetonQuestLogger logger = betonQuest.loggerFactory().create(this, "PlayerCompass");
+        final PlayerCompass playerCompass = new PlayerCompass(logger, betonQuest.profiles(), betonQuest.compasses(), mainConfig, player);
         this.compasses.put(player.getUniqueId(), playerCompass);
         return playerCompass;
     }

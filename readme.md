@@ -33,7 +33,7 @@ honnycompass.reload
 
 ## Dependencies
 
-- BetonQuest (3.0.0-DEV) - compass destinations.
+- BetonQuest (3.0.0-DEV-700) - compass destinations.
 - PlaceholderAPI
 
 ## Preview:
